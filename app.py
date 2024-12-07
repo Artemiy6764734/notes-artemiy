@@ -13,7 +13,7 @@ class NoteWindow(QtWidgets.QMainWindow):
         self.ui.pushButton_3.clicked.connect(self.save_note)
         self.ui.pushButton_2.clicked.connect(self.del_note)
         self.ui.pushButton_4.clicked.connect(self.add_tag)
-        self.ui.pushButton_5.clicked.connect(self.del_taf)
+        self.ui.pushButton_5.clicked.connect(self.del_tag)
         self.ui.pushButton_6.clicked.connect(self.search_tag)
 
         self.load_notes()
@@ -22,7 +22,7 @@ class NoteWindow(QtWidgets.QMainWindow):
         try:
             with open('notes_data.json', 'r', encoding='utf=8'  ) as file:
                 self.notes = json.load(file)
-            self.ui.listWidget.additems(self.notes)
+            self.ui.listWidget.addItems(self.notes)
         except FileNotFoundError:
             self.notes = {}
 
@@ -81,6 +81,39 @@ class NoteWindow(QtWidgets.QMainWindow):
                 self.save_to_file()
         else:
             QtWidgets.QMessageBox.warning(self, "Помилка", "Замітка для додавання тега не обрана!")
+
+    def search_tag(self):
+        tag = self.ui.lineEdit.text()
+        if self.ui.pushButton_6.text() == 'Шукати замітки по тегу' and tag:
+            notes_filtered = {k: v for k, v in self.notes.items() if tag in v['теги']}
+            self.ui.listWidget.clear()
+            self.ui.listWidget.addItems(notes_filtered)
+            self.ui.pushButton_6.setText('Скинути пошук')
+        elif self.ui.pushButton_6.text() == 'Скинути пошук':
+            self.ui.listWidget.clear()
+            self.ui.listWidget.addItems(self.notes)
+            self.ui.lineEdit.clear()
+            self.ui.pushButton_6.setText('Шукати замітки по тегу')
+
+    def del_tag(self):
+        if self.ui.listWidget_2.currentItem():
+            key = self.ui.listWidget.currentItem().text()
+            tag = self.ui.listWidget_2.currentItem().text()
+            self.notes[key]['теги'].remove(tag)
+            self.ui.listWidget_2.clear()
+            self.ui.listWidget_2.addItems(self.notes[key]["теги"])
+            self.save_to_file()
+        else:
+            QtWidgets.QMessageBox.warning(self, 'Помилка', "Тег для видалення не обраний!")
+
+
+
+import sys
+app = QtWidgets.QApplication(sys.argv)
+mainWindow = NoteWindow()
+mainWindow.show()
+sys.exit(app.exec_())
+
 
 
 
